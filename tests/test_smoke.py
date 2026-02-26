@@ -8,5 +8,10 @@ async def test_smoke_example_title():
         browser = await p.chromium.launch()
         page = await browser.new_page()
         await page.goto("https://demo.playwright.dev/todomvc/#/")
-        await expect(page).to_have_title("React • TodoMVC")
+        
+        expected_title = "React • TodoMVC"
+        actual_title = await page.title()
+        
+        await expect(page).to_have_title(expected_title)
+        print(f'Actual page title \"{actual_title}\" matches the expected \"{expected_title}\"')
         await browser.close()
