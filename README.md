@@ -1,8 +1,7 @@
 # todomvc-playwright-demo
 Playwright + Python E2E testing demo (TodoMVC) with pytest, POM structure, and GitHub Actions CI.
 
-Automated tests for the following website:
-https://demo.playwright.dev/todomvc/#/
+Automated tests for the following website: https://demo.playwright.dev/todomvc/#/
 
 Tests cover the following requirements:
 • A new todo item can be added using English text.
