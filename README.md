@@ -1,5 +1,5 @@
 # todomvc-playwright-demo
-Playwright + Python E2E testing demo (TodoMVC) with pytest, POM structure, and GitHub Actions CI.
+Playwright + Python E2E testing demo (TodoMVC) with pytest, POM structure.
 
 Automated tests for the following website: https://demo.playwright.dev/todomvc/#/
 
