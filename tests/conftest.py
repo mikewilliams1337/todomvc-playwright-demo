@@ -28,10 +28,8 @@ async def page() -> AsyncGenerator[Page, None]:
         await browser.close()
 
 @pytest.fixture
-async def todo_page(page: Page) -> AsyncGenerator[TodoPage, None]:
+async def todo(page: Page) -> AsyncGenerator[TodoPage, None]:
     # Create an instance of the TodoPage page object, passing in the Playwright page
-    todo_page = TodoPage(page)
-    # Open the base URL for the TodoMVC app
-    await todo_page.open()
-    # Provide the TodoPage object to the test; test runs here
-    yield todo_page
+    todo = TodoPage(page)
+    await todo.open()   # Uses the BasePage's open method to navigate to the base URL
+    yield todo          # Provide the TodoPage object to the test; test runs here

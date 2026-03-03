@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, List
 
 from playwright.async_api import Locator, Page, expect
 
@@ -56,6 +56,9 @@ class BasePage:
 
     async def click(self, locator: Locator) -> None:
         await locator.click()
+    
+    async def dblclick(self, locator: Locator) -> None:
+        await locator.dblclick()
 
     async def fill(self, locator: Locator, text: str) -> None:
         await locator.fill(text)
@@ -66,28 +69,91 @@ class BasePage:
     async def hover(self, locator: Locator) -> None:
         await locator.hover()
 
+
     # ---------- Common assertions ----------
 
-    async def expect_title(self, title: str) -> None:
-        await expect(self.page).to_have_title(title)
+    async def expect_title(self, expected_title: str) -> None:
+        actual_title = await self.page.title()
+        await expect(self.page).to_have_title(expected_title)
+        print(
+            f'Actual page title "{actual_title}" matches the expected "{expected_title}"'
+        )
 
-    async def expect_visible(self, locator: Locator) -> None:
-        await expect(locator).to_be_visible()
+    async def expect_text(self, locator: Locator, expected_text: str) -> None:
+        actual_text = await locator.text_content()
+        await expect(locator).to_have_text(expected_text)
+        print(
+            f'Actual text "{actual_text}" matches the expected "{expected_text}"'
+        )    
+    
+    async def expect_checked(self, locator: Locator) -> None:
+        await expect(locator).to_be_checked()
+        print(f"Locator {locator} is checked.")
 
-    async def expect_hidden(self, locator: Locator) -> None:
-        await expect(locator).to_be_hidden()
+    async def expect_unchecked(self, locator: Locator) -> None:
+        await expect(locator).not_to_be_checked()
+        print(f"Locator {locator} is unchecked.")
 
-    async def expect_count(self, locator: Locator, count: int) -> None:
-        await expect(locator).to_have_count(count)
+    async def expect_attribute(self, locator: Locator, name: str, value: str) -> None:
+        await expect(locator).to_have_attribute(name, value)
+        print(
+            f'Locator {locator} has attribute "{name}" with value "{value}".'
+        )
 
-    async def expect_text(self, locator: Locator, text: str) -> None:
-        await expect(locator).to_have_text(text)
+    async def expect_css_property(self, locator: Locator, property_name: str, expected_value: str) -> None:
+        await expect(locator).to_have_css(property_name, expected_value)
+        print(
+            f"Locator {locator} has CSS {property_name} == '{expected_value}'"
+        )
+
+    async def expect_exists(self, locator: Locator) -> None:
+        await expect(locator).to_have_count(1)
+        print(f"Locator {locator} exists in the DOM.")
+
+    async def expect_deleted(self, locator: Locator) -> None:
+        """
+        Assert that *no* elements match this locator – i.e. it has been removed
+        from the DOM.  This is what you want after deleting a list item.
+        """
+        # the to_have_count assertion waits for the count to settle, so it will
+        # retry until either the element disappears or a timeout occurs.
+        await expect(locator).to_have_count(0)
+        print(f"Locator {locator} is not present in the DOM.")
 
     # ---------- State helpers ----------
 
-    async def clear_storage(self) -> None:
+    async def compile_list(
+        self,
+        container: Locator,
+        item_selector: str,
+        *,
+        state_accessor: Callable[[Locator], Any] | None = None,
+    ) -> List[tuple[str, Any]]:
         """
-        Useful for resetting app state between tests when the app uses localStorage.
-        Call BEFORE navigating, or after with a reload.
+        Build a list of (text, state) for elements found under `container`.
+
+        - `container` is a Locator pointing at the parent element that holds
+          all items (e.g. the <ul> in a todo list).
+        - `item_selector` is a selector scoped to `container` that matches each
+          item. It can be a CSS selector, text locator, etc.
+        - `state_accessor`, when provided, is a coroutine/function that receives
+          the Locator for a single item and returns any additional state you
+          care about (a bool, string, dict, etc.). If omitted the state field
+          will be ``None``.
+
+        The base implementation does not assume anything about the markup used
+        for state; the subclass (e.g. ``TodoPage``) can supply an accessor or
+        post-process the returned tuples.
         """
-        await self.page.add_init_script("localStorage.clear(); sessionStorage.clear();")
+        items = container.locator(item_selector)
+        count = await items.count()
+        out: List[tuple[str, Any]] = []
+        for i in range(count):
+            item = items.nth(i)
+            text = await item.text_content()
+            state = await state_accessor(item) if state_accessor else None
+            out.append((text or "", state))
+        return out
+
+
+    
