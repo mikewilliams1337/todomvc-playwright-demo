@@ -85,7 +85,11 @@ class BasePage:
         await expect(locator).to_have_text(expected_text)
         print(
             f'Actual text "{actual_text}" matches the expected "{expected_text}"'
-        )    
+        )
+
+    async def expect_visible(self, locator: Locator) -> None:
+        await expect(locator).to_be_visible()
+        print(f"Locator {locator} is visible on the page.")
     
     async def expect_checked(self, locator: Locator) -> None:
         await expect(locator).to_be_checked()

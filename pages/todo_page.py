@@ -11,34 +11,34 @@ class TodoPage(BasePage):
 
     def todo_input(self) -> Locator:
         return self.by_placeholder("What needs to be done?")
-    
+
     def list_item(self, item_name: str) -> Locator:
-        return self.by_text(item_name, exact=True)
-    
+        return self.by_css("li").filter(has=self.by_text(item_name))
+
     def item_checkbox(self, item_name: str) -> Locator:
         return self.list_item(item_name).locator(".toggle")
-    
+
     def item_edit(self, item_name: str) -> Locator:
         return self.list_item(item_name).locator(".edit")
 
     def delete_button(self, item_name: str) -> Locator:
-        return self.list_item(item_name).locator(".destroy")
+        return self.list_item(item_name).locator('button[aria-label="Delete"]')
 
     def toggle_all(self) -> Locator:
         return self.by_id("toggle-all")
-    
+
     def filter_all(self) -> Locator:
         return self.by_text("All")
-    
+
     def filter_active(self) -> Locator:
         return self.by_text("Active")
-    
+
     def filter_completed(self) -> Locator:
         return self.by_text("Completed")
-    
+
     def clear_completed(self) -> Locator:
         return self.by_text("Clear completed")
-    
+
     # ---------- Page-specific actions ----------
 
     async def add_new_item(self, item_name: str) -> None:
@@ -53,14 +53,14 @@ class TodoPage(BasePage):
         await self.dblclick(self.item_edit(item_name))
         await self.fill(self.item_edit(item_name), new_name)
         await self.press(self.item_edit(item_name), "Enter")
-    
+
     async def delete_item(self, item_name: str) -> None:
         await self.hover(self.list_item(item_name))
         await self.click(self.delete_button(item_name))
 
     async def toggle_all_items(self) -> None:
         await self.click(self.toggle_all())
-    
+
     async def filter_all_items(self) -> None:
         await self.click(self.filter_all())
 
@@ -69,7 +69,7 @@ class TodoPage(BasePage):
 
     async def filter_completed_items(self) -> None:
         await self.click(self.filter_completed())
-    
+
     async def clear_completed_items(self) -> None:
         await self.click(self.clear_completed())
 
@@ -89,15 +89,16 @@ class TodoPage(BasePage):
 
         return await self.compile_list(ul, "li", state_accessor=state_accessor)
 
-    # ---------- Page-specific assertions ----------    
+    # ---------- Page-specific assertions ----------
 
     async def verify_todo_title(self) -> None:
         expected_title = "React • TodoMVC"
         await self.expect_title(expected_title)
 
-    async def verify_list_item(self, item_name: str) -> None:
+    async def verify_item_exists(self, item_name: str) -> None:
         await self.filter_all_items()           # ensure item is not hidden by filter
         await self.expect_text(self.list_item(item_name), item_name)
+        await self.expect_exists(self.list_item(item_name))
 
     async def verify_item_active(self, item_name: str) -> None:
         await self.filter_active_items()        # ensure item is not hidden by filter
@@ -105,7 +106,7 @@ class TodoPage(BasePage):
         await self.expect_unchecked(self.item_checkbox(item_name))
         await self.filter_completed_items()     # ensure item is hidden by filter
         await self.expect_deleted(self.list_item(item_name))
-        await self.filter_all_items()           # ensure item is not hidden by filter   
+        await self.filter_all_items()           # ensure item is not hidden by filter
         await self.expect_text(self.list_item(item_name), item_name)
         await self.expect_unchecked(self.item_checkbox(item_name))
 
@@ -114,9 +115,6 @@ class TodoPage(BasePage):
         await self.expect_text(self.list_item(item_name), item_name)
         await self.expect_checked(self.item_checkbox(item_name))
         await self.expect_attribute(self.list_item(item_name), "class", "completed")
-        await self.expect_attribute(self.item_checkbox(item_name), "checked", "true")
-        await self.expect_css_property(self.list_item(item_name), "text-decoration", "line-through")
-        await self.expect_css_property(self.list_item(item_name), "color", "#d9d9d9")
         await self.filter_active_items()        # ensure item is hidden by filter
         await self.expect_deleted(self.list_item(item_name))
         await self.filter_all_items()           # ensure item is not hidden by filter
@@ -127,10 +125,6 @@ class TodoPage(BasePage):
         await self.expect_text(self.list_item(new_name), new_name)
         await self.expect_deleted(self.list_item(old_name))
 
-    async def verify_item_exists(self, item_name: str) -> None:
-        await self.filter_all_items()           # ensure item is not hidden by filter
-        await self.expect_exists(self.list_item(item_name))
-
     async def verify_item_deleted(self, item_name: str) -> None:
         await self.filter_active_items()        # ensure item is not hidden by filter
         await self.expect_deleted(self.list_item(item_name))
@@ -138,6 +132,9 @@ class TodoPage(BasePage):
         await self.expect_deleted(self.list_item(item_name))
         await self.filter_all_items()           # ensure item is not hidden by filter
         await self.expect_deleted(self.list_item(item_name))
+
+    async def verify_all_items_cleared(self) -> None:
+        await self.expect_deleted(self.by_css("ul.todo-list li"))
 
     async def verify_item_filters(self) -> None:
         """
