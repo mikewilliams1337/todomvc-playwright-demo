@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, List
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 from playwright.async_api import Locator, Page, expect
 
@@ -128,7 +129,7 @@ class BasePage:
         item_selector: str,
         *,
         state_accessor: Callable[[Locator], Any] | None = None,
-    ) -> List[tuple[str, Any]]:
+    ) -> list[tuple[str, Any]]:
         """
         Build a list of (text, state) for elements found under `container`.
 
@@ -147,7 +148,7 @@ class BasePage:
         """
         items = container.locator(item_selector)
         count = await items.count()
-        out: List[tuple[str, Any]] = []
+        out: list[tuple[str, Any]] = []
         for i in range(count):
             item = items.nth(i)
             text = await item.text_content()

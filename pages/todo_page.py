@@ -9,7 +9,7 @@ class TodoPage(BasePage):
 
     # ---------- Page-specific locators ----------
 
-    def new_todo(self) -> Locator:
+    def todo_input(self) -> Locator:
         return self.by_placeholder("What needs to be done?")
     
     def list_item(self, item_name: str) -> Locator:
@@ -42,8 +42,8 @@ class TodoPage(BasePage):
     # ---------- Page-specific actions ----------
 
     async def add_new_item(self, item_name: str) -> None:
-        await self.fill(self.new_todo(), item_name)
-        await self.press(self.new_todo(), "Enter")
+        await self.fill(self.todo_input(), item_name)
+        await self.press(self.todo_input(), "Enter")
 
     async def complete_item(self, item_name: str) -> None:
         await self.click(self.item_checkbox(item_name))
@@ -139,7 +139,7 @@ class TodoPage(BasePage):
         await self.filter_all_items()           # ensure item is not hidden by filter
         await self.expect_deleted(self.list_item(item_name))
 
-    async def verify_filters(self) -> None:
+    async def verify_item_filters(self) -> None:
         """
         Ensure filtering works correctly:
         * when 'Active' filter is selected, no completed items are visible
