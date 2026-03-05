@@ -50,7 +50,7 @@ class TodoPage(BasePage):
 
     async def edit_item(self, item_name: str, new_name: str) -> None:
         await self.hover(self.list_item(item_name))
-        await self.dblclick(self.item_edit(item_name))
+        await self.dblclick(self.list_item(item_name))
         await self.fill(self.item_edit(item_name), new_name)
         await self.press(self.item_edit(item_name), "Enter")
 
@@ -120,10 +120,10 @@ class TodoPage(BasePage):
         await self.filter_all_items()           # ensure item is not hidden by filter
         await self.expect_text(self.list_item(item_name), item_name)
 
-    async def verify_item_edited(self, old_name: str, new_name: str) -> None:
+    async def verify_item_edited(self, item_name: str, new_name: str) -> None:
         await self.filter_all_items()           # ensure item is not hidden by filter
         await self.expect_text(self.list_item(new_name), new_name)
-        await self.expect_deleted(self.list_item(old_name))
+        await self.expect_deleted(self.list_item(item_name))
 
     async def verify_item_deleted(self, item_name: str) -> None:
         await self.filter_active_items()        # ensure item is not hidden by filter
@@ -146,24 +146,21 @@ class TodoPage(BasePage):
         duplicate locator logic.
         """
         # capture current state before applying filters (should be full list)
-        full = await self.compile_todo_list()
+        full = await self.compile_todo_list()  # List of (text, completed)
+        full_active = [text for text, completed in full if not completed]
+        full_completed = [text for text, completed in full if completed]
 
-        # active filter: only items with state False
+        # active filter: only active items from full list should be visible
         await self.filter_active_items()
-        active_list = await self.compile_todo_list()
-        assert all(state is False for _, state in active_list), "active filter showed completed item"
+        active_items = [await item.inner_text() for item in await self.page.locator('ul.todo-list li').all()]
+        assert set(active_items) == set(full_active), f"Active filter mismatch: expected {full_active}, got {active_items}"
 
-        # completed filter: only items with state True
+        # completed filter: only completed items from full list should be visible
         await self.filter_completed_items()
-        completed_list = await self.compile_todo_list()
-        assert all(state is True for _, state in completed_list), "completed filter showed active item"
+        completed_items = [await item.inner_text() for item in await self.page.locator('ul.todo-list li').all()]
+        assert set(completed_items) == set(full_completed), f"Completed filter mismatch: expected {full_completed}, got {completed_items}"  # noqa: E501
 
         # back to all
         await self.filter_all_items()
         all_again = await self.compile_todo_list()
-
-        # make sure we recovered original list (order may or may not matter)
         assert sorted(full) == sorted(all_again), "all filter did not restore full list"
-
-        # one more sanity: ensure lengths add up
-        assert len(full) == len(active_list) + len(completed_list)
