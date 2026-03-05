@@ -6,25 +6,28 @@ from playwright.async_api import Page, async_playwright
 from pages.todo_page import TodoPage
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--headed", action="store_true", default=False, help="Run browser in headed mode"
+    )
+    parser.addoption(
+        "--slowmo", type=int, default=0, help="Slow down Playwright actions (ms)"
+    )
+
 # @pytest.fixture makes this function available as a parameter to all tests
 # It will be called before each test and cleaned up after
 @pytest.fixture
-async def page() -> AsyncGenerator[Page, None]:
-    # Start Playwright context manager (handles cleanup automatically)
+async def page(request) -> AsyncGenerator[Page, None]:
     async with async_playwright() as p:
-        # Launch the Chromium browser; headless=False opens the browser UI, slow_mo=500 slows down actions for visibility
-        browser = await p.chromium.launch(headless=False, slow_mo=500)
-        # Create a new browser context (isolated session with own cookies/storage)
+        headless = not request.config.getoption("--headed")
+        slow_mo = request.config.getoption("--slowmo")
+        browser = await p.chromium.launch(headless=headless, slow_mo=slow_mo)
         context = await browser.new_context()
-        # Create a new page/tab within the context
         page = await context.new_page()
 
-        # Provide the page object to the test; test runs here
         yield page
-
-        # Cleanup: Close the context (all pages within it)
+        
         await context.close()
-        # Cleanup: Close the browser instance
         await browser.close()
 
 

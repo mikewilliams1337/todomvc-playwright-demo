@@ -48,6 +48,13 @@ Or, if you want to use the venv's python directly:
 .venv\Scripts\python.exe -m pytest -v
 ```
 
+#### Optional: Run with browser UI or slow motion
+- To see the browser UI: `pytest --headed`
+- To slow down actions for debugging: `pytest --slowmo=500`
+- Combine both: `pytest --headed --slowmo=500`
+
+You can use these flags with any test run command above.
+
 ### 3. Run a specific test file
 
 ```
@@ -97,3 +104,14 @@ You can also run them with the venv's python directly:
   .venv\Scripts\python.exe -m playwright install chromium
   ```
 - **Troubleshooting:** If you see errors about missing packages or browsers, ensure your venv is activated and all install steps above have been completed.
+
+## Pytest Command Flags Key
+
+- `-m` : Run library module as a script (e.g., `python -m pytest`).
+- `-v` : Verbose output—shows each test name and result.
+- `-s` : Disable output capture—allows interactive input/output (needed for prompt-based tests).
+- `-r` : Show extra summary info for skipped, failed, or xfailed tests (e.g., `-rA` for all).
+- `--headed` : Run browser in headed (UI) mode (custom flag for this project).
+- `--slowmo` : Slow down Playwright actions by N milliseconds (custom flag for this project).
+
+You can combine these flags as needed in your test commands.
