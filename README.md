@@ -13,7 +13,7 @@ Tests cover the following requirements:
 - The "Active" filter correctly shows only items that are not completed.
 - The "Completed" filter correctly shows only items that have been marked as completed.
 
-- Added a few extra tests that I wanted, editing, prompted, smoketest
+Note: This repo also includes a few extra tests (editing, prompt-based, smoketest) that are not required
 
 ## Getting Started
 
