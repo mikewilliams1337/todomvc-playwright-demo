@@ -5,13 +5,15 @@ Automated tests for the following website: https://demo.playwright.dev/todomvc/#
 
 Tests cover the following requirements:
 
-• A new todo item can be added using English text.
-• A new todo item can be added using non-English characters.
-• A new todo item can be added that includes numbers.
-• A todo item can be marked as completed and appears correctly in the "Completed" view.
-• A todo item can be deleted and no longer appears in any view.
-• The "Active" filter correctly shows only items that are not completed.
-• The "Completed" filter correctly shows only items that have been marked as completed.
+- A new todo item can be added using English text.
+- A new todo item can be added using non-English characters.
+- A new todo item can be added that includes numbers.
+- A todo item can be marked as completed and appears correctly in the "Completed" view.
+- A todo item can be deleted and no longer appears in any view.
+- The "Active" filter correctly shows only items that are not completed.
+- The "Completed" filter correctly shows only items that have been marked as completed.
+
+- Added a few extra tests that I wanted, editing, prompted, smoketest
 
 ## Getting Started
 
@@ -104,14 +106,3 @@ You can also run them with the venv's python directly:
   .venv\Scripts\python.exe -m playwright install chromium
   ```
 - **Troubleshooting:** If you see errors about missing packages or browsers, ensure your venv is activated and all install steps above have been completed.
-
-## Pytest Command Flags Key
-
-- `-m` : Run library module as a script (e.g., `python -m pytest`).
-- `-v` : Verbose output—shows each test name and result.
-- `-s` : Disable output capture—allows interactive input/output (needed for prompt-based tests).
-- `-r` : Show extra summary info for skipped, failed, or xfailed tests (e.g., `-rA` for all).
-- `--headed` : Run browser in headed (UI) mode (custom flag for this project).
-- `--slowmo` : Slow down Playwright actions by N milliseconds (custom flag for this project).
-
-You can combine these flags as needed in your test commands.
