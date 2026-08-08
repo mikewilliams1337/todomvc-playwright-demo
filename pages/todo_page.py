@@ -1,4 +1,4 @@
-from playwright.async_api import Locator, Page
+from playwright.async_api import Locator, Page, expect
 
 from pages.base_page import BasePage
 
@@ -144,6 +144,9 @@ class TodoPage(BasePage):
         * when 'All' filter is selected again, the full set reappears
         The comparison is performed using ``compile_todo_list`` so we don't
         duplicate locator logic.
+        
+        NOTE: Race condition fix - Added explicit waits for DOM to settle after
+        filter clicks to prevent timeouts in headless mode where tests run faster.
         """
         # capture current state before applying filters (should be full list)
         full = await self.compile_todo_list()  # List of (text, completed)
@@ -152,15 +155,22 @@ class TodoPage(BasePage):
 
         # active filter: only active items from full list should be visible
         await self.filter_active_items()
+        # Wait for the filtered list to settle to the expected count before reading items
+        # This prevents TimeoutError in headless mode where DOM updates race with element access
+        await expect(self.page.locator("ul.todo-list li")).to_have_count(len(full_active))
         active_items = [await item.inner_text() for item in await self.page.locator('ul.todo-list li').all()]
         assert set(active_items) == set(full_active), f"Active filter mismatch: expected {full_active}, got {active_items}"
 
         # completed filter: only completed items from full list should be visible
         await self.filter_completed_items()
+        # Wait for the filtered list to settle to the expected count before reading items
+        await expect(self.page.locator("ul.todo-list li")).to_have_count(len(full_completed))
         completed_items = [await item.inner_text() for item in await self.page.locator('ul.todo-list li').all()]
         assert set(completed_items) == set(full_completed), f"Completed filter mismatch: expected {full_completed}, got {completed_items}"  # noqa: E501
 
         # back to all
         await self.filter_all_items()
+        # Wait for all items to be visible before compiling the final list
+        await expect(self.page.locator("ul.todo-list li")).to_have_count(len(full))
         all_again = await self.compile_todo_list()
         assert sorted(full) == sorted(all_again), "all filter did not restore full list"
