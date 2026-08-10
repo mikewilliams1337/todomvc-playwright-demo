@@ -82,7 +82,7 @@ class TodoPage(BasePage):
         returns ``True`` when the ``li`` has the ``completed`` class.
         """
         ul = self.by_css("ul.todo-list")
-        await self.filter_all_items()           # ensure we are looking at the full list
+        await self.filter_all_items()  # ensure we are looking at the full list
 
         async def state_accessor(item: Locator) -> bool:
             return await item.get_attribute("class") == "completed"
@@ -96,41 +96,41 @@ class TodoPage(BasePage):
         await self.expect_title(expected_title)
 
     async def verify_item_exists(self, item_name: str) -> None:
-        await self.filter_all_items()           # ensure item is not hidden by filter
+        await self.filter_all_items()  # ensure item is not hidden by filter
         await self.expect_text(self.list_item(item_name), item_name)
         await self.expect_exists(self.list_item(item_name))
 
     async def verify_item_active(self, item_name: str) -> None:
-        await self.filter_active_items()        # ensure item is not hidden by filter
+        await self.filter_active_items()  # ensure item is not hidden by filter
         await self.expect_text(self.list_item(item_name), item_name)
         await self.expect_unchecked(self.item_checkbox(item_name))
-        await self.filter_completed_items()     # ensure item is hidden by filter
+        await self.filter_completed_items()  # ensure item is hidden by filter
         await self.expect_deleted(self.list_item(item_name))
-        await self.filter_all_items()           # ensure item is not hidden by filter
+        await self.filter_all_items()  # ensure item is not hidden by filter
         await self.expect_text(self.list_item(item_name), item_name)
         await self.expect_unchecked(self.item_checkbox(item_name))
 
     async def verify_item_completed(self, item_name: str) -> None:
-        await self.filter_completed_items()     # ensure item is not hidden by filter
+        await self.filter_completed_items()  # ensure item is not hidden by filter
         await self.expect_text(self.list_item(item_name), item_name)
         await self.expect_checked(self.item_checkbox(item_name))
         await self.expect_attribute(self.list_item(item_name), "class", "completed")
-        await self.filter_active_items()        # ensure item is hidden by filter
+        await self.filter_active_items()  # ensure item is hidden by filter
         await self.expect_deleted(self.list_item(item_name))
-        await self.filter_all_items()           # ensure item is not hidden by filter
+        await self.filter_all_items()  # ensure item is not hidden by filter
         await self.expect_text(self.list_item(item_name), item_name)
 
     async def verify_item_edited(self, item_name: str, new_name: str) -> None:
-        await self.filter_all_items()           # ensure item is not hidden by filter
+        await self.filter_all_items()  # ensure item is not hidden by filter
         await self.expect_text(self.list_item(new_name), new_name)
         await self.expect_deleted(self.list_item(item_name))
 
     async def verify_item_deleted(self, item_name: str) -> None:
-        await self.filter_active_items()        # ensure item is not hidden by filter
+        await self.filter_active_items()  # ensure item is not hidden by filter
         await self.expect_deleted(self.list_item(item_name))
-        await self.filter_completed_items()     # ensure item is not hidden by filter
+        await self.filter_completed_items()  # ensure item is not hidden by filter
         await self.expect_deleted(self.list_item(item_name))
-        await self.filter_all_items()           # ensure item is not hidden by filter
+        await self.filter_all_items()  # ensure item is not hidden by filter
         await self.expect_deleted(self.list_item(item_name))
 
     async def verify_all_items_cleared(self) -> None:
@@ -144,7 +144,7 @@ class TodoPage(BasePage):
         * when 'All' filter is selected again, the full set reappears
         The comparison is performed using ``compile_todo_list`` so we don't
         duplicate locator logic.
-        
+
         NOTE: Race condition fix - Added explicit waits for DOM to settle after
         filter clicks to prevent timeouts in headless mode where tests run faster.
         """
@@ -158,15 +158,17 @@ class TodoPage(BasePage):
         # Wait for the filtered list to settle to the expected count before reading items
         # This prevents TimeoutError in headless mode where DOM updates race with element access
         await expect(self.page.locator("ul.todo-list li")).to_have_count(len(full_active))
-        active_items = [await item.inner_text() for item in await self.page.locator('ul.todo-list li').all()]
+        active_items = [await item.inner_text() for item in await self.page.locator("ul.todo-list li").all()]
         assert set(active_items) == set(full_active), f"Active filter mismatch: expected {full_active}, got {active_items}"
 
         # completed filter: only completed items from full list should be visible
         await self.filter_completed_items()
         # Wait for the filtered list to settle to the expected count before reading items
         await expect(self.page.locator("ul.todo-list li")).to_have_count(len(full_completed))
-        completed_items = [await item.inner_text() for item in await self.page.locator('ul.todo-list li').all()]
-        assert set(completed_items) == set(full_completed), f"Completed filter mismatch: expected {full_completed}, got {completed_items}"  # noqa: E501
+        completed_items = [await item.inner_text() for item in await self.page.locator("ul.todo-list li").all()]
+        assert set(completed_items) == set(full_completed), (
+            f"Completed filter mismatch: expected {full_completed}, got {completed_items}"
+        )  # noqa: E501
 
         # back to all
         await self.filter_all_items()
